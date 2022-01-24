@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/binary"
+	"flag"
 	"fmt"
 	"net"
 	"time"
@@ -25,8 +26,14 @@ type packet struct {
 	TxTimeFrac     uint32
 }
 
+var (
+	server = flag.String("server", "0.us.pool.ntp.org:123", "The NTP server")
+)
+
 func main() {
-	conn, err := net.Dial("udp4", "0.us.pool.ntp.org:123")
+	flag.Parse()
+
+	conn, err := net.Dial("udp4", *server)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -46,6 +53,7 @@ func main() {
 		panic(err.Error())
 	}
 
+	// NTP date start from 1900, UNIX start from 1970, so we need to remove 70 years from the NTP packet
 	const ntpEpochOffset uint32 = 2208988800
 	secs := rsp.TxTimeSec - ntpEpochOffset
 
